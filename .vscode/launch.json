@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "C/C++: LLDB",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "args": ["../sample/sample.obj", "[[0,0,0], [10,0,0]]"],
+            "cwd": "${fileDirname}",
+            "preLaunchTask": "C/C++: clang++.exe build active file"
+        }
+    ],
+    "version": "2.0.0"
+}

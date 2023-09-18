@@ -1,0 +1,13 @@
+*
+!.gitignore
+!CMakeLists.txt
+!LICENSE
+!README.md
+
+!.vscode/
+!.vscode/*
+!sample/
+!sample/*
+!src/
+!src/*.cpp
+!src/*.hpp

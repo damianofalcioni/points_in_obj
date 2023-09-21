@@ -5,7 +5,7 @@
 #define FAST_OBJ_IMPLEMENTATION
 #include "third_party/fast_obj.h"
 #include "third_party/json.hpp"
-#include "third_party/isInConvexPoly.hpp"
+#include "third_party/isInPoly.hpp"
 // for convenience
 using json = nlohmann::json;
 
@@ -43,7 +43,7 @@ std::vector<std::vector<std::string>> findObjects(const char* objPath, const std
     }
 
     for (unsigned int pp = 0; pp < pointList.size(); pp++) {
-      if (isInConvexPoly(pointList[pp], polyhedron))
+      if (isInPoly2(pointList[pp], polyhedron))
         ret[pp].push_back(grp_name);
     }
   }

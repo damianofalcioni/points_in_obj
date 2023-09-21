@@ -43,7 +43,7 @@ std::vector<std::vector<std::string>> findObjects(const char* objPath, const std
     }
 
     for (unsigned int pp = 0; pp < pointList.size(); pp++) {
-      if (isInPoly2(pointList[pp], polyhedron))
+      if (isInPoly4(pointList[pp], polyhedron))
         ret[pp].push_back(grp_name);
     }
   }

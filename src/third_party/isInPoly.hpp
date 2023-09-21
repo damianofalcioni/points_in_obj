@@ -221,3 +221,162 @@ bool isInPoly3(Point const& p, std::vector<Face> const& fs) {
   else
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+//------- source Lilis Georgios
+double dot3D(double *a, double *b) {
+  double dp = 0.0;
+  dp = a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  return dp;
+}
+
+double *cross3D(double *a, double *b) {
+  double *cp = (double *)malloc(3 * sizeof(double));
+  cp[0] = a[1] * b[2] - a[2] * b[1];
+  cp[1] = a[2] * b[0] - a[0] * b[2];
+  cp[2] = a[0] * b[1] - a[1] * b[0];
+  return cp;
+}
+
+double norm3D(double *a) {
+  double nrm = 0.0;
+  nrm = sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+  return nrm;
+}
+
+bool lineSegment_Intersects_Plane(double px, double py, double pz,
+                                  double mx, double my, double mz,
+                                  double p0x, double p0y, double p0z,
+                                  double p1x, double p1y, double p1z,
+                                  double p2x, double p2y, double p2z) {
+  bool intersects = false;
+  double *P0_Pp = (double *)malloc(3 * sizeof(double));
+  double *P0_Pm = (double *)malloc(3 * sizeof(double));
+  double *P0_P1 = (double *)malloc(3 * sizeof(double));
+  double *P0_P2 = (double *)malloc(3 * sizeof(double));
+  P0_Pp[0] = px - p0x;
+  P0_Pp[1] = py - p0y;
+  P0_Pp[2] = pz - p0z;
+  P0_Pm[0] = mx - p0x;
+  P0_Pm[1] = my - p0y;
+  P0_Pm[2] = mz - p0z;
+  P0_P1[0] = p1x - p0x;
+  P0_P1[1] = p1y - p0y;
+  P0_P1[2] = p1z - p0z;
+  P0_P2[0] = p2x - p0x;
+  P0_P2[1] = p2y - p0y;
+  P0_P2[2] = p2z - p0z;
+  double *C12 = cross3D(P0_P1, P0_P2);
+  if (dot3D(P0_Pp, C12) * dot3D(P0_Pm, C12) < 0)
+    intersects = true;
+  free(P0_Pm);
+  free(P0_Pp);
+  free(P0_P1);
+  free(P0_P2);
+  free(C12);
+  return intersects;
+}
+
+double *point_where_Linesegment_Intersects_Plane(double px, double py, double pz,
+                                                 double mx, double my, double mz,
+                                                 double p0x, double p0y, double p0z,
+                                                 double p1x, double p1y, double p1z,
+                                                 double p2x, double p2y, double p2z) {
+  double *t = (double *)malloc(3 * sizeof(double));
+  double *P0_P1 = (double *)malloc(3 * sizeof(double));
+  double *P0_P2 = (double *)malloc(3 * sizeof(double));
+  P0_P1[0] = p1x - p0x;
+  P0_P1[1] = p1y - p0y;
+  P0_P1[2] = p1z - p0z;
+  P0_P2[0] = p2x - p0x;
+  P0_P2[1] = p2y - p0y;
+  P0_P2[2] = p2z - p0z;
+  double *C = cross3D(P0_P1, P0_P2);
+  double d = (-1) * (p0x * C[0] + p0y * C[1] + p0z * C[2]);
+  // Here if there is intersection the denominator (C[0]*(px-mx) + C[1]*(py-my) + C[2]*(pz-mz)) cannot be zero !!!
+  double a = ((-1) * (C[0] * mx + C[1] * my + C[2] * mz)) / (C[0] * (px - mx) + C[1] * (py - my) + C[2] * (pz - mz));
+  t[0] = mx + a * (px - mx); // tx
+  t[1] = my + a * (py - my); // ty
+  t[2] = mz + a * (pz - mz); // tz
+  free(P0_P1);
+  free(P0_P2);
+  free(C);
+  return t;
+}
+
+bool Point3D_Inside_Triangle3D(double tx, double ty, double tz,
+                               double p0x, double p0y, double p0z,
+                               double p1x, double p1y, double p1z,
+                               double p2x, double p2y, double p2z) {
+  double *P0_Pt = (double *)malloc(3 * sizeof(double));
+  double *P0_P1 = (double *)malloc(3 * sizeof(double));
+  double *P0_P2 = (double *)malloc(3 * sizeof(double));
+  P0_Pt[0] = tx - p0x;
+  P0_Pt[1] = ty - p0y;
+  P0_Pt[2] = tz - p0z;
+  P0_P1[0] = p1x - p0x;
+  P0_P1[1] = p1y - p0y;
+  P0_P1[2] = p1z - p0z;
+  P0_P2[0] = p2x - p0x;
+  P0_P2[1] = p2y - p0y;
+  P0_P2[2] = p2z - p0z;
+  double *P12 = cross3D(P0_P1, P0_P2);
+  double A12 = dot3D(P12, P12);
+  bool is_inside = false;
+  if ((A12 > 0.0) && (norm3D(P0_Pt) > 0.0) && (norm3D(P0_P1) > 0.0) && (norm3D(P0_P2) > 0.0)) {
+    double *DP1_DP = cross3D(P0_P1, P0_Pt);
+    double *DP_DP2 = cross3D(P0_Pt, P0_P2);
+    double gamma = dot3D(DP1_DP, P12) / A12;
+    double beta = dot3D(DP_DP2, P12) / A12;
+    double alpha = 1.0 - beta - gamma;
+    free(DP1_DP);
+    free(DP_DP2);
+    is_inside = ((0.0 <= alpha) && (alpha <= 1.0) &&
+                 (0.0 <= beta) && (beta <= 1.0) &&
+                 (0.0 <= gamma) && (gamma <= 1.0));
+  }
+  free(P12);
+  free(P0_Pt);
+  free(P0_P1);
+  free(P0_P2);
+  return is_inside;
+}
+
+
+
+bool isInPoly4(Point const& p, std::vector<Face> const& fs) {
+  Point m = Point{-100000, -100000, -100000};
+  int count = 0;
+  for (Face const& f : fs) {
+    if (lineSegment_Intersects_Plane(p.x, p.y, p.z, 
+                                      m.x, m.y, m.z, 
+                                      f.v[0].x, f.v[0].y, f.v[0].z,
+                                      f.v[1].x, f.v[1].y, f.v[1].z,
+                                      f.v[2].x, f.v[2].y, f.v[2].z)) {
+      double* t = point_where_Linesegment_Intersects_Plane(p.x, p.y, p.z, 
+                                                    m.x, m.y, m.z, 
+                                                    f.v[0].x, f.v[0].y, f.v[0].z,
+                                                    f.v[1].x, f.v[1].y, f.v[1].z,
+                                                    f.v[2].x, f.v[2].y, f.v[2].z);
+      if(Point3D_Inside_Triangle3D(t[0], t[1], t[2],
+                                f.v[0].x, f.v[0].y, f.v[0].z,
+                                f.v[1].x, f.v[1].y, f.v[1].z,
+                                f.v[2].x, f.v[2].y, f.v[2].z))
+        count++;
+    }
+  }
+  if(count % 2 == 0)
+    return false;
+  else
+    return true;
+}

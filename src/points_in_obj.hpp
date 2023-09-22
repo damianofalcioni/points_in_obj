@@ -6,7 +6,6 @@
 #include "third_party/fast_obj.h"
 #include "third_party/json.hpp"
 #include "third_party/isInPoly.hpp"
-// for convenience
 using json = nlohmann::json;
 
 std::vector<std::vector<std::string>> findObjects(const char* objPath, const std::vector<Point> pointList) {
@@ -14,36 +13,46 @@ std::vector<std::vector<std::string>> findObjects(const char* objPath, const std
   std::string path = objPath;
   fastObjMesh* m = fast_obj_read(objPath);
   if (!m)
-    throw std::invalid_argument("Impossible to read " + path);
+    throw std::invalid_argument("Impossible to read OBJ file: " + path);
 
   for (unsigned int ii = 0; ii < m->object_count; ii++) { // m->group_count
+    double min_x, min_y, min_z;
+    int pointCount = 0;
     const fastObjGroup& grp = m->objects[ii];              // m->groups[ii]
     std::string grp_name = "unnamed_object_" + std::to_string(ii);
     if (grp.name)
       grp_name = grp.name;
 
     std::vector<Face> polyhedron = {};
-
     int idx = 0;
     for (unsigned int jj = 0; jj < grp.face_count; jj++) {
       Face polyhedronFace = {};
       unsigned int fv = m->face_vertices[grp.face_offset + jj];
       for (unsigned int kk = 0; kk < fv; kk++) {
         fastObjIndex mi = m->indices[grp.index_offset + idx];
-        if (mi.p) {                          //mi.n
+        if (mi.p) {
           Point vp;
-          vp.x = m->positions[3 * mi.p + 0]; //m->normals[3 * mi.n + 0]
-          vp.y = m->positions[3 * mi.p + 1]; //m->normals[3 * mi.n + 1]
-          vp.z = m->positions[3 * mi.p + 2]; //m->normals[3 * mi.n + 2]
+          vp.x = m->positions[3 * mi.p + 0];
+          vp.y = m->positions[3 * mi.p + 1];
+          vp.z = m->positions[3 * mi.p + 2];
           polyhedronFace.v.push_back(vp);
+          min_x = vp.x < min_x || pointCount == 0 ? vp.x : min_x;
+          min_y = vp.y < min_y || pointCount == 0 ? vp.y : min_y;
+          min_z = vp.z < min_z || pointCount == 0 ? vp.z : min_z;
+          pointCount++;
         }
         idx++;
       }
+      if (polyhedronFace.v.size() != 3)
+        throw std::invalid_argument("The OBJ must be triangulated"); //https://github.com/mapbox/earcut.hpp
       polyhedron.push_back(polyhedronFace);
     }
+    if (pointCount == 0)
+      throw std::invalid_argument("No points in the provided OBJ file");
+    Point minPoint = Point{min_x, min_y, min_z};
 
     for (unsigned int pp = 0; pp < pointList.size(); pp++) {
-      if (isInPoly4(pointList[pp], polyhedron))
+      if (isInPoly(pointList[pp], polyhedron, minPoint, SEGMENT))
         ret[pp].push_back(grp_name);
     }
   }

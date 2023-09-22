@@ -13,3 +13,5 @@
 !src/*.hpp
 !src/third_party/
 !src/third_party/*
+!test/
+!test/*.cpp

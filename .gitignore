@@ -15,3 +15,5 @@
 !src/third_party/*
 !test/
 !test/*.cpp
+!bin/
+!bin/*

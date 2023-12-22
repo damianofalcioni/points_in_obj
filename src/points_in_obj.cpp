@@ -12,6 +12,11 @@ int main(int argc, const char* argv[]) {
     std::cout << out << std::endl;
   } catch (const std::invalid_argument& e ) {
     json j = {{"error", e.what()}};
+    json r = json::array();
+    for (int i = 0; i < argc; ++i) {
+      r.push_back(argv[i]);
+    }
+    j["argv"] = r;
     std::cout << j << std::endl;
   } catch (...) {
     printf("{\"error\":\"generic error\"}");
